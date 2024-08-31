@@ -9,6 +9,10 @@ interface Element {
   code: string[]
 }
 
+interface FunctionElement extends Element {
+  signature: string
+}
+
 export class CodeContext {
   currentElementType: ElementType;
 
@@ -37,11 +41,12 @@ export class CodeContext {
     this.currentElementType = this.generatedElements[this.currentElementIdx].type;
   }
 
-  pushFunction() {
+  pushFunction(signature: string) {
     this.generatedElements.push({
       type:ElementType.Function,
-      code: []
-    });
+      code: [],
+      signature: signature
+    } as FunctionElement);
     this.currentElementIdx += 1;
     this.currentElementType = this.generatedElements[this.currentElementIdx].type;
   }
