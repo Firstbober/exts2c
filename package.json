@@ -1,0 +1,17 @@
+{
+  "name": "exts2c",
+  "version": "0.0.1",
+  "description": "Extended TypeScript to C++ compiler (malloc-free)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Firstbober (firstbober@tutanota.com)",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "typescript": "^5.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.1"
+  }
+}
