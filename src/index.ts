@@ -101,41 +101,38 @@ function resolveType(type: ts.Node, unit: CompilationUnit): [string, boolean, bo
 }
 
 function resolveExpression(expression: ts.Expression, unit: CompilationUnit, tuple: boolean): string {
-  if(ts.isLiteralExpression(expression)) {
-    if(ts.isNumericLiteral(expression)) {
+  if (ts.isLiteralExpression(expression)) {
+    if (ts.isNumericLiteral(expression)) {
       return expression.text;
     }
-    if(ts.isStringLiteral(expression)) {
+    if (ts.isStringLiteral(expression)) {
       return `"${expression.text}"`;
     }
     pushError(unit, expression, "unsupported literal expression");
     return "// literal expression";
   }
-  if(ts.isExpressionStatement(expression)) {
+  if (ts.isExpressionStatement(expression)) {
     pushError(unit, expression, "unsupported statement expression");
     return "// statement expression";
   }
-  if(ts.isBinaryExpression(expression)) {
+  if (ts.isBinaryExpression(expression)) {
     pushError(unit, expression, "unsupported binary expression");
     return "// binary expression";
   }
-  if(ts.isObjectLiteralExpression(expression)) {
+  if (ts.isObjectLiteralExpression(expression)) {
     pushError(unit, expression, "unsupported object literal expression");
     return "// object literal expression";
   }
-  if(ts.isArrayLiteralExpression(expression)) {
+  if (ts.isArrayLiteralExpression(expression)) {
     let expressions = [];
     expression.forEachChild(node => {
       expressions.push(resolveExpression(node as ts.Expression, unit, false));
     })
 
     return `{${expressions.join(', ')}}`
-
-    pushError(unit, expression, "unsupported array literal expression");
-    return "// array literal expression";
   }
 
-  switch(expression.kind) {
+  switch (expression.kind) {
     case ts.SyntaxKind.FalseKeyword:
       return "false";
     case ts.SyntaxKind.TrueKeyword:
@@ -155,19 +152,19 @@ function generateVariableDeclaration(node: ts.VariableDeclaration, unit: Compila
 
   let [typeCode, typeNeedsInitialization, isTuple, isArray] = resolveType(node.type, unit);
 
-  if(!ts.isIdentifier(node.name)) {
+  if (!ts.isIdentifier(node.name)) {
     pushError(unit, node, "variable name is not identifier");
     return;
   }
   let name = node.name.text;
 
-  if(!node.initializer && typeNeedsInitialization) {
+  if (!node.initializer && typeNeedsInitialization) {
     pushError(unit, node, "variable declaration lacks initialization");
     pushCode(unit, `// variable declaration lacks initialization`);
     return;
   }
 
-  if(node.initializer) {
+  if (node.initializer) {
     pushCode(unit, `${typeCode} ${name}${isArray ? '[]' : ''} = ${resolveExpression(node.initializer, unit, isTuple)}`);
     return;
   }
@@ -188,6 +185,64 @@ function generateVariableStatement(node: ts.VariableStatement, unit: Compilation
       pushError(unit, node, "no variable declaration list node");
     }
   });
+}
+
+function generateBlockMember(node: ts.Node, unit: CompilationUnit) {
+  if (ts.isVariableStatement(node)) {
+    return generateVariableStatement(node, unit);
+  }
+  if (ts.isFunctionDeclaration(node)) {
+    return generateFunctionDeclaration(node, unit);
+  }
+  if(ts.isReturnStatement(node)) {
+    if(!node.expression) {
+      pushError(unit, node, "return must contain an expression")
+      return;
+    }
+    return pushCode(unit, `return ${resolveExpression(node.expression, unit, false)}`);
+  }
+}
+
+function generateFunctionDeclaration(node: ts.FunctionDeclaration, unit: CompilationUnit) {
+  if (!ts.isIdentifier(node.name)) {
+    pushError(unit, node, "function name is not identifier");
+    return;
+  }
+  let name = node.name.text;
+
+  let parameters: [string, string][] = [];
+  for (const parameter of node.parameters) {
+    if (!ts.isIdentifier(parameter.name)) {
+      pushError(unit, node, "function parameter name is not identifier");
+      return;
+    }
+    let name = parameter.name.text;
+
+    if (!parameter.type) {
+      pushError(unit, node, "function parameter must have a type");
+      return;
+    }
+    let type = resolveType(parameter.type, unit);
+
+    parameters.push([`${name}${type[3] ? '[]' : ''}`, type[0]]);
+  }
+
+  if (!node.type) {
+    pushError(unit, node, "function needs to have a return type");
+    return;
+  }
+
+  let [code, initalizer, isTuple, isArray] = resolveType(node.type, unit)
+  pushCode(unit, `${code}${isArray ? '*' : ''} ${name}(${parameters.map((v => {
+    return `${v[1]} ${v[0]}`;
+  })).join(', ')}) ${node.body ? 'exts2c__internal__function' : ''}`)
+
+  if(node.body) {
+    pushBlock(unit);
+    node.body.forEachChild(block_child => {
+      generateBlockMember(block_child, unit);
+    })
+  }
 }
 
 function generateCompilationUnit(file: string): void {
@@ -211,22 +266,20 @@ function generateCompilationUnit(file: string): void {
 
   // Loop through the root AST nodes of the file
   ts.forEachChild(sourceFile, node => {
-    if (ts.isVariableStatement(node)) {
-      generateVariableStatement(node, unit);
-      return;
-    }
+    generateBlockMember(node, unit);
   });
 
   console.log(unit.errors);
 
+  // console.log(unit.code);
   let rootBlock = false;
-  for(const block of unit.code) {
-    if(!rootBlock) {
-      console.log(block.map(v => `${v};\n`).join(''))
+  for (const block of unit.code) {
+    if (!rootBlock) {
+      console.log(block.map(v => `${v};\n`).join('').replace('exts2c__internal__function;', ''))
       rootBlock = true;
       continue;
     }
-    console.log(`{\n${block.join(';\n')}}\n`)
+    console.log(`{\n${block.map(v => `${v};\n`).join('').replace('exts2c__internal__function;', '')}}\n`)
   }
 }
 
