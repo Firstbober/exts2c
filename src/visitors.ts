@@ -178,6 +178,7 @@ export class Visitors {
       if (ts.isStringLiteral(node)) {
         return `"${node.text}"`;
       }
+
       this.unit.error(node, ErrorKind.UnsupportedLiteralExpression)
       return `/* literal expression */`;
     }
@@ -186,8 +187,11 @@ export class Visitors {
       return `/* statement expression */`;
     }
     if (ts.isBinaryExpression(node)) {
-      // this.unit.error(node, ErrorKind.UnsupportedExpression);
-      return "/* binary expression */";
+      const left = this.visitExpression(node.left);
+      const right = this.visitExpression(node.right);
+      const operator = node.operatorToken;
+
+      return `${left} ${operator.getText(this.unit.sourceFile)} ${right}`;
     }
     if (ts.isObjectLiteralExpression(node)) {
       this.unit.error(node, ErrorKind.UnsupportedExpression);
@@ -202,6 +206,9 @@ export class Visitors {
       })
 
       return `{${expressions.join(', ')}}`
+    }
+    if (ts.isIdentifier(node)) {
+      return node.text;
     }
 
     switch (node.kind) {
@@ -237,7 +244,7 @@ export class Visitors {
     this.ctx.pushCode(`exts2c__function__declaration___${signature}`);
     this.ctx.pushFunction(signature);
 
-    if(!node.body) {
+    if (!node.body) {
       return this.unit.error(node, ErrorKind.MissingBodyForFunction);
     }
 

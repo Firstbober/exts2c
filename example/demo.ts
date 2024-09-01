@@ -12,7 +12,9 @@ let tuple: [string, number] = ['hello', 10];
 
 // 3. Functions with Types
 function add(x: number, y: number): number {
-  return x + y + age;
+  return x + y;
 }
 
 let tuplea: [string, number] = ['hello', 10];
+
+let t: number = 25 + 5 / 8 * x || r + 0b1010;

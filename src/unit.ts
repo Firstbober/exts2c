@@ -52,6 +52,23 @@ export class CompilationUnit {
           return "type is explicitly required for this kind of statement"
         case ErrorKind.NameIsNotIdentifier:
           return "provided name is not and identifier"
+        case ErrorKind.InvalidExpression:
+          return "invalid expression"
+        case ErrorKind.MissingBodyForFunction:
+          return "the function is missing its definition"
+        case ErrorKind.MissingTypeForFunctionParameter:
+          return "the parameter in the function declaration is missing its type"
+        case ErrorKind.MissingTypeForFunctionReturn:
+          return "the function is missing its return type"
+        case ErrorKind.NoExpressionPresent:
+          return "expression in required to be present here"
+        case ErrorKind.UnsupportedExpression:
+          return "this kind of expression is unsuppoered"
+        case ErrorKind.UnsupportedLiteralExpression:
+          return "unsupported type of literal"
+
+        case ErrorKind.noCXXSTDLib_StringIsUnsupported:
+          return "string type is unsupported without C++ STD library enabled"
 
         default:
           return "unknown error"
