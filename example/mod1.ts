@@ -5,6 +5,16 @@ export let AB1: string = "a";
 let AB2: string = "a";
 
 
+// 1. Basic Types
+let isDone: boolean = false;
+let age: number = 25;
+let firstName: string = 'John';
+let notSure: any, ofThis: any = 4; // any type
+notSure = 'maybe a string instead';
+let list: number[] = [1, 2, 3];
+let tuple: [string, number] = ['hello', 10];
+
+
 // 2. Enum
 enum Color {
   Red,

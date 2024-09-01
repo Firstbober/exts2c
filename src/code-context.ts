@@ -1,15 +1,16 @@
-enum ElementType {
+export enum ElementType {
   Root,
   Block,
   Function
 }
 
-interface Element {
+export interface Element {
   type: ElementType,
   code: string[]
 }
 
-interface FunctionElement extends Element {
+export interface FunctionElement extends Element {
+  type: ElementType.Function;
   signature: string
 }
 
@@ -30,7 +31,7 @@ export class CodeContext {
 
   pushBlock() {
     this.generatedElements.push({
-      type:ElementType.Block,
+      type: ElementType.Block,
       code: []
     });
     this.currentElementIdx += 1;
@@ -43,7 +44,7 @@ export class CodeContext {
 
   pushFunction(signature: string) {
     this.generatedElements.push({
-      type:ElementType.Function,
+      type: ElementType.Function,
       code: [],
       signature: signature
     } as FunctionElement);

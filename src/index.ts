@@ -2,6 +2,7 @@ import * as ts from "typescript";
 import { CompilationUnit } from "./unit";
 import { CodeContext } from "./code-context";
 import { Visitors } from "./visitors";
+import { postProcess } from "./post-process";
 
 // https://ts-ast-viewer.com/#code/PTAEBUE8AcFMGUDGAnAltALqAYrAhhgK7KwDOoAIrALYD2AdqRsgagwFDsigCMAdKABCeUqkQQYZdgBtYWVKQoNYALlAAjWrVl56oALygAZnmmlYAbhlzQeAOarQ9QtXWxkB0ACYArFdlYRqjITAByeNSOTGj0dp4A5ABStAAW9PH+NvS0GPDEjrqQADSgtEbgKQpqhZ4ALBag3DUYkuzZufkJ1HiQbrag0aixoENM+AAmGdZY0goYas6u7gDaALqeyzwlXiUAzKuZWETQsmrLg7Eli27I64bL8Smw0tK08SU8AAwH7EA
 // https://github.com/Microsoft/TypeScript/wiki/Using-the-Compiler-API
@@ -37,7 +38,8 @@ function generateCompilationUnit(file: string): void {
 
   // Visit all nodes in AST and crate base for post-processing
   visitors.visitSourceFile();
-  console.log(ctx.generatedElements);
+  postProcess(ctx);
+  // console.log(ctx.generatedElements);
 }
 
 // Run the extract function with the script's arguments
