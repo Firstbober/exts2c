@@ -37,6 +37,10 @@ export class Visitors {
     if (ts.isFunctionDeclaration(node)) {
       return this.visitFunctionDeclaration(node);
     }
+    if (ts.isExpressionStatement(node)) {
+      return this.ctx.pushCode(this.visitExpression(node.expression));
+    }
+
     if (ts.isReturnStatement(node)) {
       if (!node.expression)
         return this.unit.error(node, ErrorKind.NoExpressionPresent);

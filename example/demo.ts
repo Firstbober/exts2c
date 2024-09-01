@@ -4,8 +4,8 @@
 let isDone: boolean = false;
 let age: number = 25;
 let firstName: string = 'John';
-// let notSure: any = 4; // any type is unsupported
-// notSure = 'maybe a string instead';
+let notSure: any = 4;
+notSure = 'maybe a string instead';
 let list: number[] = [1, 2, 3];
 let tuple: [string, number] = ['hello', 10];
 
@@ -16,5 +16,3 @@ function add(x: number, y: number): number {
 }
 
 let tuplea: [string, number] = ['hello', 10];
-
-let t: number = 25 + 5 / 8 * x || r + 0b1010;
