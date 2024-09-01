@@ -217,6 +217,13 @@ export class Visitors {
     if (ts.isIdentifier(node)) {
       return node.text;
     }
+    if (ts.isCallExpression(node)) {
+      let args: string[] = [];
+      for(const argument of node.arguments) {
+        args.push(this.visitExpression(argument));
+      }
+      return `${this.visitExpression(node.expression)}(${args.join(', ')})`
+    }
 
     switch (node.kind) {
       case ts.SyntaxKind.FalseKeyword:
