@@ -10,47 +10,34 @@ function generateCompilationUnit(file: string): void {
   // Create a Program to represent the project, then pull out the
   // source file to parse its AST.
   let program = ts.createProgram([file], { allowJs: true });
-  const sourceFile = program.getSourceFile(file);
+  const sourceFile = program.getSourceFile(file)!;
 
   let unit: CompilationUnit = new CompilationUnit(file, sourceFile, {
     noCXXSTDLib: false
   });
   let ctx: CodeContext = new CodeContext();
-  let visitors: Visitors = new Visitors(ctx, unit);
+  let visitors: Visitors = new Visitors(ctx, unit, program.getTypeChecker());
 
+  // Register to unit any typescript diagnostics
+  const preEmitDiagnostics = ts.getPreEmitDiagnostics(program, sourceFile);
+  for(const diagnostic of preEmitDiagnostics) {
+    if(diagnostic.category == ts.DiagnosticCategory.Error)
+      unit.typescriptError();
+    else
+      unit.typescriptWarning();
+  }
+
+  // Print diagnostics as part of transpilation
+  let diagnostics = ts.formatDiagnosticsWithColorAndContext(preEmitDiagnostics, {
+    getCurrentDirectory: () => ts.sys.getCurrentDirectory(),
+    getCanonicalFileName: f => f,
+    getNewLine: () => "\n"
+  });
+  console.log(diagnostics)
+
+  // Visit all nodes in AST and crate base for post-processing
   visitors.visitSourceFile();
   console.log(ctx.generatedElements);
-
-  // let unit: CompilationUnit = {
-  //   code: [],
-  //   errors: [],
-  //   typesToResolve: []
-  // };
-
-  // // TODO use this to get parsing diagnostics
-  // // console.log(ts
-  // // .getPreEmitDiagnostics(program))
-
-  // // root block
-  // pushBlock(unit);
-
-  // // Loop through the root AST nodes of the file
-  // ts.forEachChild(sourceFile, node => {
-  //   generateBlockMember(node, unit);
-  // });
-
-  // console.log(unit.errors);
-
-  // // console.log(unit.code);
-  // let rootBlock = false;
-  // for (const block of unit.code) {
-  //   if (!rootBlock) {
-  //     console.log(block.map(v => `${v};\n`).join('').replace('exts2c__internal__function;', ''))
-  //     rootBlock = true;
-  //     continue;
-  //   }
-  //   console.log(`{\n${block.map(v => `${v};\n`).join('').replace('exts2c__internal__function;', '')}}\n`)
-  // }
 }
 
 // Run the extract function with the script's arguments

@@ -14,10 +14,14 @@ export enum ErrorKind {
 
   MissingInitializationForVariable,
   MissingBodyForFunction,
+  MissingNameForFunction,
+
+  TryingToInitializeAnyLeftHandValue,
 
   NameIsNotIdentifier,
   UnsupportedLiteralExpression,
   UnsupportedExpression,
+  UnsupportedDeclarationType,
   InvalidExpression,
   NoExpressionPresent,
 
@@ -104,4 +108,7 @@ export class CompilationUnit {
     const { line } = ts.getLineAndCharacterOfPosition(this.sourceFile, node.pos);
     console.warn(`${Bold}${FgYellow}warning[${kind}]${Reset}${Bold}: ${kindToString()}${Reset}\n  ${FgBlue}-->${Reset} ${this.sourcePath}:${Bold}${FgBlue}${line + 1}${Reset}\n   ${FgBlue}#${Reset}\n   ${FgBlue}#${Reset} ${node.getText(this.sourceFile)}\n   ${FgBlue}#${Reset}\n`);
   }
+
+  typescriptError() {}
+  typescriptWarning() {}
 };

@@ -18,10 +18,12 @@ interface Type {
 export class Visitors {
   ctx: CodeContext;
   unit: CompilationUnit;
+  typeChecker: ts.TypeChecker;
 
-  constructor(ctx: CodeContext, unit: CompilationUnit) {
+  constructor(ctx: CodeContext, unit: CompilationUnit, typeChecker: ts.TypeChecker) {
     this.ctx = ctx;
     this.unit = unit;
+    this.typeChecker = typeChecker;
   }
 
   visitSourceFile() {
@@ -149,6 +151,7 @@ export class Visitors {
           needsInitialization: false
         };
       case ts.SyntaxKind.AnyKeyword:
+        this.unit.error(node, ErrorKind.InvalidType);
         return {
           modifier: TypeModifier.None,
           text: "auto",
@@ -203,7 +206,7 @@ export class Visitors {
       return "/* object literal expression */";
     }
     if (ts.isArrayLiteralExpression(node)) {
-      let expressions = [];
+      let expressions: string[] = [];
 
       node.forEachChild(node => {
         expressions.push(this.visitExpression(node as ts.Expression));
@@ -241,6 +244,9 @@ export class Visitors {
     if (!node.type)
       return this.unit.error(node, ErrorKind.MissingTypeForFunctionReturn);
     const type = this.visitType(node.type);
+
+    if(!node.name)
+      return this.unit.error(node, ErrorKind.MissingNameForFunction);
     const name = `${this.visitName(node.name)}${type.modifier == TypeModifier.Array ? '*' : ''}`;
 
     const signature = `${type.text} ${name}(${parameters.join(', ')})`;

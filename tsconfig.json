@@ -3,5 +3,7 @@
   "compilerOptions": {
     "outDir": "build",
     "alwaysStrict": true,
+    "noImplicitAny": true,
+    "strict": true,
   }
 }
